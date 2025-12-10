@@ -1,0 +1,307 @@
+<!doctype html>
+<html lang="id">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Journal Calendar — Friska (Polished UI)</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#fff7f6; --card:#ffffff; --muted:#6b5561;
+    --accent:#f07aa8; --accent-2:#8acb76; --accent-3:#8fd3ff;
+    --glass: rgba(255,255,255,0.6);
+    --shadow: 0 12px 30px rgba(98,38,70,0.06);
+    --soft-shadow: 0 8px 24px rgba(30,20,30,0.06);
+    --radius:14px; --maxw:1100px;
+    --transition: 220ms cubic-bezier(.2,.9,.3,1);
+  }
+  *{box-sizing:border-box}
+  html,body{height:100%}
+  body{margin:0;font-family:Inter,system-ui,Segoe UI,Roboto,'Helvetica Neue',Arial;background:linear-gradient(180deg,var(--bg),#fff);color:#2b1b20;min-height:100vh;-webkit-font-smoothing:antialiased}
+  .wrap{max-width:var(--maxw);margin:28px auto;padding:18px}
+  header{display:flex;align-items:center;gap:12px}
+  .logo{width:56px;height:56px;border-radius:12px;background:linear-gradient(180deg,#fff,#fff4f6);display:grid;place-items:center;color:var(--accent);font-weight:800;box-shadow:var(--soft-shadow);border:1px solid rgba(240,120,160,0.08)}
+  h1{margin:0;font-weight:800}
+  p.lead{margin:6px 0 0;color:var(--muted);font-size:14px}
+
+  /* layout */
+  .panel{display:grid;grid-template-columns:360px 1fr 340px;gap:18px;margin-top:16px}
+  .card{background:var(--card);padding:14px;border-radius:var(--radius);box-shadow:var(--shadow);transition:transform var(--transition),box-shadow var(--transition)}
+  .card:hover{transform:translateY(-6px);box-shadow:0 18px 40px rgba(30,20,30,0.08)}
+
+  /* calendar */
+  .calendar-header{display:flex;align-items:center;justify-content:space-between}
+  .month-title{font-weight:800}
+  .cal-controls button{background:var(--glass);border:none;padding:8px 10px;border-radius:10px;cursor:pointer;transition:transform var(--transition);backdrop-filter:blur(6px)}
+  .cal-controls button:hover{transform:translateY(-3px)}
+  .calendar{display:grid;grid-template-columns:repeat(7,1fr);gap:10px;margin-top:12px}
+  .weekday{font-size:12px;color:var(--muted);text-align:center;padding:6px}
+  .day{min-height:76px;padding:10px;border-radius:12px;background:linear-gradient(180deg,#fff,#fff9);border:1px solid rgba(0,0,0,0.03);cursor:pointer;display:flex;flex-direction:column;justify-content:space-between;position:relative;transition:box-shadow var(--transition),transform var(--transition)}
+  .day:hover{transform:translateY(-6px);box-shadow:var(--soft-shadow)}
+  .day.disabled{opacity:0.35;cursor:default}
+  .day .num{font-weight:700}
+  .tag-list{display:flex;gap:6px;flex-wrap:wrap}
+  .dot{width:10px;height:10px;border-radius:50%}
+  .dot.journal{background:var(--accent)}
+  .dot.todo{background:var(--accent-2)}
+  .dot.photo{background:var(--accent-3)}
+  .dot.mood{background:#ffd27a}
+  .today{outline:3px solid rgba(138,203,118,0.12)}
+
+  /* center panel: journal + editor */
+  .center-col{display:flex;flex-direction:column;gap:12px}
+  .editor-head{display:flex;justify-content:space-between;align-items:center}
+  textarea#journalText{width:100%;min-height:220px;padding:14px;border-radius:12px;border:1px solid rgba(0,0,0,0.06);resize:vertical;font-size:15px;line-height:1.5;transition:box-shadow var(--transition)}
+  textarea#journalText:focus{box-shadow:0 8px 30px rgba(240,120,160,0.08);outline:none}
+  .controls{display:flex;gap:8px;align-items:center}
+  .btn{background:var(--accent-2);color:white;border:none;padding:8px 12px;border-radius:10px;cursor:pointer;font-weight:700;transition:transform var(--transition),box-shadow var(--transition)}
+  .btn:hover{transform:translateY(-3px);box-shadow:0 8px 20px rgba(0,0,0,0.06)}
+  .btn-pink{background:linear-gradient(90deg,var(--accent),#ff8bb3);color:white}
+  .small{font-size:13px;color:var(--muted)}
+
+  /* right column: todos, mood, photo, categories */
+  .section{display:flex;flex-direction:column;gap:10px}
+  .todo-list{list-style:none;padding:0;margin:0;display:flex;flex-direction:column;gap:8px}
+  .todo-item{display:flex;align-items:center;gap:8px;padding:10px;border-radius:10px;background:linear-gradient(180deg,#fff,#fffefc);border:1px solid rgba(0,0,0,0.03)}
+  input[type=text], select{padding:8px;border-radius:8px;border:1px solid rgba(0,0,0,0.06);transition:box-shadow var(--transition)}
+  input[type=text]:focus{box-shadow:0 8px 30px rgba(140,203,118,0.06);outline:none}
+  .moods{display:flex;gap:8px}
+  .mood-btn{padding:8px;border-radius:8px;border:1px solid rgba(0,0,0,0.06);cursor:pointer;background:linear-gradient(180deg,#fff,#fffbf0);transition:transform var(--transition)}
+  .mood-btn:hover{transform:translateY(-3px)}
+  .mood-btn.active{box-shadow:0 8px 30px rgba(255,200,120,0.12);border-color:rgba(255,200,120,0.3)}
+  .thumb{width:100%;height:160px;object-fit:cover;border-radius:8px;border:1px solid rgba(0,0,0,0.04)}
+  .category-list{display:flex;gap:8px;flex-wrap:wrap}
+  .category-pill{padding:6px 8px;border-radius:999px;border:1px solid rgba(0,0,0,0.06);cursor:pointer;background:linear-gradient(180deg,#fff,#fffefc)}
+
+  /* icons in buttons */
+  .icon{width:16px;height:16px;display:inline-block;vertical-align:middle;margin-right:6px}
+
+  /* floating SVG decor */
+  .bg-decor{position:fixed;z-index:-1;opacity:0.08;transform-origin:center}
+  .flower1{left:10px;top:140px;width:140px;animation:float1 7s ease-in-out infinite}
+  .flower2{right:10px;bottom:40px;width:220px;animation:float2 9s ease-in-out infinite}
+  @keyframes float1{0%{transform:translateY(0)}50%{transform:translateY(-12px)}100%{transform:translateY(0)}}
+  @keyframes float2{0%{transform:translateY(0)}50%{transform:translateY(-18px)}100%{transform:translateY(0)}}
+
+  /* responsive */
+  @media (max-width:1100px){.panel{grid-template-columns:360px 1fr;}}
+  @media (max-width:760px){.panel{grid-template-columns:1fr;}.bg-decor{display:none}}
+</style>
+</head>
+<body>
+  <svg class="bg-decor flower1" viewBox="0 0 120 120"><g><circle cx="60" cy="60" r="28" fill="var(--accent)"/><path d="M60 14 C36 24 26 46 44 64 C28 70 36 92 60 86 C84 92 94 70 76 64 C94 46 84 24 60 14Z" fill="var(--accent-2)"/></g></svg>
+  <svg class="bg-decor flower2" viewBox="0 0 140 140"><g><circle cx="70" cy="70" r="30" fill="var(--accent-3)"/></g></svg>
+
+  <div class="wrap">
+    <header>
+      <div class="logo">FT</div>
+      <div>
+        <h1>Journal Calendar — Friska</h1>
+        <p class="lead">Simpan jurnal, to-do, mood, foto, dan kategori per tanggal. Semua tersimpan pada browser / web ini.</p>
+      </div>
+    </header>
+
+    <div class="panel">
+      <!-- LEFT: Calendar -->
+      <div class="card">
+        <div class="calendar-header">
+          <div class="month-title" id="monthTitle">Bulan</div>
+          <div class="cal-controls">
+            <button id="prevMonth" title="Previous month">◀</button>
+            <button id="nextMonth" title="Next month">▶</button>
+          </div>
+        </div>
+
+        <div style="display:grid;grid-template-columns:repeat(7,1fr);gap:8px;margin-top:12px">
+          <div class="weekday">Min</div><div class="weekday">Sen</div><div class="weekday">Sel</div><div class="weekday">Rab</div><div class="weekday">Kam</div><div class="weekday">Jum</div><div class="weekday">Sab</div>
+        </div>
+
+        <div id="calendar" class="calendar" aria-label="Calendar"></div>
+        <div style="margin-top:12px;display:flex;gap:8px;align-items:center">
+          <button id="clearAll" class="btn" title="Hapus semua data">Clear All</button>
+          <div class="small">• Tanggal yang punya konten diberi tanda</div>
+        </div>
+      </div>
+
+      <!-- CENTER: Journal Editor -->
+      <div class="center-col">
+        <div class="card">
+          <div class="editor-head">
+            <div>
+              <div id="dayLabel" style="font-weight:800">Pilih tanggal</div>
+              <div class="small" id="savedState">-</div>
+            </div>
+            <div class="controls">
+              <select id="categorySelect"><option value="">— Category —</option></select>
+              <input id="newCategory" placeholder="+ new category" style="padding:8px;border-radius:8px;border:1px solid rgba(0,0,0,0.06)" />
+              <button id="addCategory" class="btn" title="Tambah category">Add</button>
+            </div>
+          </div>
+
+          <textarea id="journalText" placeholder="Tulis jurnalmu... (support foto & category)"></textarea>
+
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-top:10px">
+            <div style="display:flex;gap:8px">
+              <button id="saveJournalBtn" class="btn-pink" title="Simpan jurnal"><span class="icon">💾</span>Save Journal</button>
+              <button id="downloadTxtBtn" class="btn" title="Download sebagai .txt"><span class="icon">⬇️</span>Download .txt</button>
+            </div>
+            <div class="small">Autosave aktif saat mengetik</div>
+          </div>
+        </div>
+
+        <!-- Simple search / filter -->
+        <div class="card">
+          <div style="display:flex;gap:8px;align-items:center">
+            <input id="searchInput" placeholder="Search journals..." style="flex:1;padding:8px;border-radius:8px;border:1px solid rgba(0,0,0,0.06)" />
+            <button id="searchBtn" class="btn" title="Search">Search</button>
+          </div>
+          <div id="searchResults" style="margin-top:12px"></div>
+        </div>
+      </div>
+
+      <!-- RIGHT: Todos, Mood, Photo -->
+      <div class="card">
+        <div class="section">
+          <div>
+            <h4>To-Do (per tanggal)</h4>
+            <div style="display:flex;gap:8px;margin-top:8px">
+              <input id="todoInput" placeholder="Tambah tugas..." />
+              <button id="addTodoBtn" class="btn" title="Tambah tugas">Add</button>
+            </div>
+            <ul id="todoList" class="todo-list" style="margin-top:12px"></ul>
+          </div>
+
+          <div>
+            <h4>Mood Tracker</h4>
+            <div class="moods">
+              <button class="mood-btn" data-mood="😊">😊 Happy</button>
+              <button class="mood-btn" data-mood="😌">😌 Calm</button>
+              <button class="mood-btn" data-mood="😢">😢 Sad</button>
+              <button class="mood-btn" data-mood="😠">😠 Angry</button>
+            </div>
+            <div class="small" id="moodSel">Selected: -</div>
+          </div>
+
+          <div>
+            <h4>Photo / Attachment</h4>
+            <input type="file" id="photoInput" accept="image/*" />
+            <img id="photoThumb" class="thumb" src="" alt="" style="display:none;margin-top:8px" />
+            <div style="margin-top:8px;display:flex;gap:8px">
+              <button id="removePhoto" class="btn" title="Hapus foto">Remove Photo</button>
+            </div>
+          </div>
+
+          <div>
+            <h4>Categories</h4>
+            <div id="categoryList" class="category-list"></div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+<script>
+// keys
+const KEY_J = 'journalData_v2';
+const KEY_T = 'todoData_v2';
+const KEY_M = 'moodData_v2';
+const KEY_P = 'photoData_v2';
+const KEY_C = 'categoryData_v2';
+
+// state
+let viewYear, viewMonth;
+let selectedKey = null; // YYYY-MM-DD
+
+// helpers
+function pad(n){return String(n).padStart(2,'0')}
+function keyFrom(y,m,d){return `${y}-${pad(m+1)}-${pad(d)}`}
+function load(k){try{return JSON.parse(localStorage.getItem(k)||'{}')}catch(e){return {}}}
+function save(k,v){localStorage.setItem(k, JSON.stringify(v))}
+
+// calendar render
+const calEl = document.getElementById('calendar');
+const monthTitle = document.getElementById('monthTitle');
+function renderCalendar(){ calEl.innerHTML=''; const first = new Date(viewYear, viewMonth, 1); const firstDay = first.getDay(); const daysInMonth = new Date(viewYear, viewMonth+1,0).getDate(); monthTitle.textContent = first.toLocaleString('id-ID',{month:'long', year:'numeric'});
+  const journals = load(KEY_J), todos=load(KEY_T), photos=load(KEY_P), moods=load(KEY_M);
+  for(let i=0;i<firstDay;i++){const b=document.createElement('div');b.className='day disabled';calEl.appendChild(b)}
+  for(let d=1; d<=daysInMonth; d++){
+    const k = keyFrom(viewYear, viewMonth, d);
+    const cell=document.createElement('div');cell.className='day';
+    cell.innerHTML = `<div class="num">${d}</div><div class="tag-list" aria-hidden></div>`;
+    const tagList = cell.querySelector('.tag-list');
+    if(journals[k]) tagList.innerHTML += '<span class="dot journal" title="journal"></span>';
+    if(todos[k] && todos[k].length) tagList.innerHTML += '<span class="dot todo" title="to-do"></span>';
+    if(photos[k]) tagList.innerHTML += '<span class="dot photo" title="photo"></span>';
+    if(moods[k]) tagList.innerHTML += '<span class="dot mood" title="mood"></span>';
+    const now = new Date(); if(now.getFullYear()===viewYear && now.getMonth()===viewMonth && now.getDate()===d) cell.classList.add('today');
+    cell.addEventListener('click', ()=> openDay(k));
+    calEl.appendChild(cell);
+  }
+}
+
+// init month
+(function initMonth(){ const now=new Date(); viewYear=now.getFullYear(); viewMonth=now.getMonth(); renderCalendar(); })();
+
+// nav
+document.getElementById('prevMonth').addEventListener('click', ()=>{ viewMonth--; if(viewMonth<0){viewMonth=11; viewYear--} renderCalendar(); });
+document.getElementById('nextMonth').addEventListener('click', ()=>{ viewMonth++; if(viewMonth>11){viewMonth=0; viewYear++} renderCalendar(); });
+
+// open day
+function openDay(k){ selectedKey=k; document.getElementById('dayLabel').textContent = new Date(k).toLocaleDateString('id-ID', {weekday:'long', day:'numeric', month:'long', year:'numeric'}); document.getElementById('savedState').textContent = 'Loading...'; document.getElementById('dayPanel').style.display='block'; document.getElementById('photoThumb').style.display='none'; loadDay(); }
+
+// load day data
+function loadDay(){ if(!selectedKey) return; const journals=load(KEY_J), todos=load(KEY_T), moods=load(KEY_M), photos=load(KEY_P), cats=load(KEY_C);
+  document.getElementById('journalText').value = journals[selectedKey] || '';
+  document.getElementById('savedState').textContent = journals[selectedKey] ? 'Saved' : 'Not saved';
+  renderTodoList(todos[selectedKey]||[]);
+  document.getElementById('moodSel').textContent = 'Selected: ' + (moods[selectedKey]||'-');
+  if(photos[selectedKey]){ document.getElementById('photoThumb').src = photos[selectedKey]; document.getElementById('photoThumb').style.display='block'; } else { document.getElementById('photoThumb').style.display='none'; }
+  populateCategories(); }
+
+// journal save
+const journalText = document.getElementById('journalText');
+document.getElementById('saveJournalBtn').addEventListener('click', saveJournal);
+function saveJournal(){ if(!selectedKey) return alert('Pilih tanggal dulu'); const data=load(KEY_J); const txt=journalText.value.trim(); if(txt) data[selectedKey]=txt; else delete data[selectedKey]; save(KEY_J, data); document.getElementById('savedState').textContent = txt? 'Saved':'Not saved'; renderCalendar(); }
+// autosave debounce
+let autoTimer=null; journalText.addEventListener('input', ()=>{ clearTimeout(autoTimer); autoTimer=setTimeout(()=>{ if(selectedKey) saveJournal(); },800); });
+
+// download txt
+document.getElementById('downloadTxtBtn').addEventListener('click', ()=>{ if(!selectedKey) return alert('Pilih tanggal'); const data=load(KEY_J); const text=data[selectedKey]||''; const blob=new Blob([text],{type:'text/plain'}); const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download=`${selectedKey}.txt`; a.click(); URL.revokeObjectURL(a.href); });
+
+// TODOS
+function renderTodoList(list){ const ul=document.getElementById('todoList'); ul.innerHTML=''; list.forEach((t,i)=>{ const li=document.createElement('li'); li.className='todo-item'; const chk=document.createElement('input'); chk.type='checkbox'; chk.checked=!!t.done; chk.addEventListener('change', ()=> toggleTodo(i)); const span=document.createElement('div'); span.className='text'; span.textContent=t.text; if(t.done){ span.style.textDecoration='line-through'; span.style.color='#999'; } const del=document.createElement('button'); del.textContent='Del'; del.className='btn'; del.style.background='transparent'; del.addEventListener('click', ()=> removeTodo(i)); li.appendChild(chk); li.appendChild(span); li.appendChild(del); ul.appendChild(li); }); }
+
+document.getElementById('addTodoBtn').addEventListener('click', ()=>{ const txt=document.getElementById('todoInput').value.trim(); if(!selectedKey) return alert('Pilih tanggal dulu'); if(!txt) return; const all=load(KEY_T); all[selectedKey]=all[selectedKey]||[]; all[selectedKey].push({text:txt, done:false}); save(KEY_T, all); document.getElementById('todoInput').value=''; renderTodoList(all[selectedKey]); renderCalendar(); });
+function toggleTodo(i){ const all=load(KEY_T); if(!all[selectedKey]) return; all[selectedKey][i].done = !all[selectedKey][i].done; save(KEY_T, all); renderTodoList(all[selectedKey]); renderCalendar(); }
+function removeTodo(i){ const all=load(KEY_T); if(!all[selectedKey]) return; all[selectedKey].splice(i,1); save(KEY_T, all); renderTodoList(all[selectedKey]); renderCalendar(); }
+
+// MOOD
+document.querySelectorAll('.mood-btn').forEach(b=>b.addEventListener('click', ()=>{ if(!selectedKey) return alert('Pilih tanggal'); document.querySelectorAll('.mood-btn').forEach(x=>x.classList.remove('active')); b.classList.add('active'); const mood=b.getAttribute('data-mood'); const all=load(KEY_M); all[selectedKey]=mood; save(KEY_M, all); document.getElementById('moodSel').textContent='Selected: '+mood; renderCalendar(); }));
+
+// PHOTO upload
+const photoInput=document.getElementById('photoInput'); photoInput.addEventListener('change', ()=>{ if(!selectedKey) return alert('Pilih tanggal'); const f=photoInput.files[0]; if(!f) return; const reader=new FileReader(); reader.onload=function(e){ const dataUrl=e.target.result; const all=load(KEY_P); all[selectedKey]=dataUrl; save(KEY_P, all); document.getElementById('photoThumb').src=dataUrl; document.getElementById('photoThumb').style.display='block'; renderCalendar(); }; reader.readAsDataURL(f); });
+
+document.getElementById('removePhoto').addEventListener('click', ()=>{ if(!selectedKey) return; const all=load(KEY_P); delete all[selectedKey]; save(KEY_P, all); document.getElementById('photoThumb').style.display='none'; renderCalendar(); });
+
+// CATEGORIES
+function populateCategories(){ const catWrap=document.getElementById('categoryList'); catWrap.innerHTML=''; const cats=load(KEY_C); const select=document.getElementById('categorySelect'); select.innerHTML='<option value="">— Category —</option>'; for(const k in cats){ const pill=document.createElement('div'); pill.className='category-pill'; pill.textContent=cats[k]; pill.onclick=()=> assignCategory(cats[k]); catWrap.appendChild(pill); const op=document.createElement('option'); op.value=cats[k]; op.textContent=cats[k]; select.appendChild(op); } }
+
+document.getElementById('addCategory').addEventListener('click', ()=>{ const v=document.getElementById('newCategory').value.trim(); if(!v) return; const cats=load(KEY_C); const id=Date.now(); cats[id]=v; save(KEY_C, cats); document.getElementById('newCategory').value=''; populateCategories(); });
+
+function assignCategory(cat){ if(!selectedKey) return alert('Pilih tanggal dulu'); const metaKey = selectedKey + '__meta'; let meta = JSON.parse(localStorage.getItem('metaData_v2')||'{}'); meta[selectedKey]=meta[selectedKey]||{}; meta[selectedKey].category = cat; localStorage.setItem('metaData_v2', JSON.stringify(meta)); toast('Category assigned: '+cat); renderCalendar(); }
+
+// SEARCH
+function toast(msg){ const e=document.createElement('div'); e.textContent=msg; e.style.position='fixed'; e.style.right='18px'; e.style.bottom='18px'; e.style.padding='10px 14px'; e.style.background='linear-gradient(90deg,var(--accent),#ff8bb3)'; e.style.color='white'; e.style.borderRadius='10px'; e.style.boxShadow='0 8px 30px rgba(0,0,0,0.12)'; document.body.appendChild(e); setTimeout(()=>e.remove(),2200); }
+
+document.getElementById('searchBtn').addEventListener('click', ()=>{ const q=document.getElementById('searchInput').value.toLowerCase().trim(); const res=document.getElementById('searchResults'); res.innerHTML=''; if(!q) return; const all=load(KEY_J); for(const k in all){ if(all[k].toLowerCase().includes(q)){ const d=document.createElement('div'); d.innerHTML=`<a href="#" data-k="${k}"><strong>${k}</strong> — ${all[k].slice(0,120).replace(/</g,'&lt;')}</a>`; d.querySelector('a').addEventListener('click', (e)=>{ e.preventDefault(); openDay(k); }); res.appendChild(d); } } });
+
+// CLEAR ALL
+document.getElementById('clearAll').addEventListener('click', ()=>{ if(confirm('Hapus semua data?')){ localStorage.removeItem(KEY_J); localStorage.removeItem(KEY_T); localStorage.removeItem(KEY_M); localStorage.removeItem(KEY_P); localStorage.removeItem(KEY_C); localStorage.removeItem('metaData_v2'); location.reload(); } });
+
+// init categories & load
+populateCategories();
+
+</script>
+</body>
+</html>
